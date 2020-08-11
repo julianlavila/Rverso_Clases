@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE)
 
 Usando la base de datos del repositorio del ministerio de ciencias, genera un dataframe que responda lo siguiente:
 
-- ¿Que proporción de las comunas ha tenido en algun momento mas de 50 casos por cada 100.000 - habitantes?
+- ¿Que proporción de las comunas ha tenido en algún momento mas de 50 casos por cada 100.000 - habitantes?
 
 - Genera un dataframe, donde aparezca para cada comuna que haya tenido sobre 50 casos por cada 100.000 habitantes, cuantos días ha tenido sobre ese valor.
 
@@ -58,7 +58,7 @@ Com<-Comunas %>%
   count(unique(Comuna)) %>%
   nrow()
 
-#Proporcion
+#Proporción
 
 (Com50*100)/Com
 ```
