@@ -31,13 +31,28 @@ threats <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/ti
 
 ## Datos de Sudamerica
 ```{r}
-SouthAm<-plants %>% 
-  filter(continent=="South America") 
-
-SouthAm %>% 
+SouthAmP<-plants %>% 
+  filter(continent=="South America") %>% 
   group_by(country) %>%
-  summarise(count=n()) %>% 
-  arrange(desc(count)) %>% 
+  summarise(Species_Lost=n()) %>% 
+  arrange(desc(Species_Lost))
+
+SouthAmP %>% 
   kable()
+
+ggplot(SouthAmP, aes(forcats::fct_reorder(country,Species_Lost,.desc = TRUE),
+                    Species_Lost),
+       )+
+  geom_col(fill="steelblue", alpha=0.8)+
+  geom_text(aes(label=Species_Lost,vjust=-0.25), color="grey30")+
+  scale_x_discrete(guide = guide_axis(n.dodge=2))+
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        text = element_text(size = 14),
+        plot.title = element_text(hjust = 0.5, size = 20)) +
+  labs(title = "Species lost by country",
+       subtitle = "South America data",
+       x="",y="")+
+theme_bw()
 ```
 
