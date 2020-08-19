@@ -1,0 +1,43 @@
+---
+title: "Clase2"
+author: "Julian Avila-Jimenez"
+date: "18/8/2020"
+output: 
+  html_document: 
+    toc: yes
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = F, cache = T, warning = F)
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+```
+
+## Extint plants 
+
+[TidyTuesday data](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-08-18/readme.md) from the **IUCN** [Red List of Trheatened Species](https://www.iucnredlist.org/) 
+
+```{r Carga de datos}
+plants <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-08-18/plants.csv")
+
+actions <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-08-18/actions.csv")
+
+threats <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-08-18/threats.csv")
+
+```
+
+## Datos de Sudamerica
+```{r}
+SouthAm<-plants %>% 
+  filter(continent=="South America") 
+
+SouthAm %>% 
+  group_by(country) %>%
+  summarise(count=n()) %>% 
+  arrange(desc(count)) %>% 
+  kable()
+```
+
