@@ -1,0 +1,119 @@
+---
+title: "Analisis de comunidades- Vegan"
+author: "Julian Avila-Jimenez"
+date: "28/9/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(vegan)
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+data(dune)
+data(dune.env)
+```
+
+### Calculo de indice de disimilaridad
+
+Existen diversos indices de disimilaridad para el analisis de comunidades basados en distancias estadisticas multidimensionales que permiten hacer comparaciones entre comunidades en funcion de las especies que las componen. En este ejercicio vamos a comparar diferentes sitios de estudio en funcion de la abundancia de las especies encontradas, primero hallamos un indice de disimilaridad de las comunidades *Bray–Curtis* y luego realizaremos un analisis de similitud *anosim* tomando la matriz de disimilitud y una variable discreta del set de datos ambiental.
+
+#### Usando el tipo de manejo tenemos:
+
+```{r}
+dune.dist<- vegdist(dune) #calculo de matriz de distancias. por defecto Bray–Curtis
+
+dune.ano<- anosim(dune.dist, dune.env$Management)
+summary(dune.ano)
+plot(dune.ano)
+```
+
+El valor de la significancia nos muestra que existen comunidades que son diferentes entre si (no debe interpretarse como que todas las comunidades son diferentes).
+
+Notese en el grafico que la comparacion debe realizarse entre cada uno de los grupos (Management) vs. todos los grupos (conjunto de todas las distancias), las cunas representan intervalos de confianza de 95% y cuando estas se sobreponen con las del grupo Between podemos inferir que no hay diferencia entre los grupos. En este caso encontramos diferencias en los grupos *BF*, *HF* y *SF*.
+
+### Analisis de porcentaje de similaridad
+
+Este analisis nos permite ver cuales son las especies que generan diferencias entre los grupos y cual es el aporte de cada una de estas a la diferencia, el analisis se realiza en forma de contrastes entre grupos, asi podemos ver que tan diferente es un grupo particular de otro.
+
+```{r}
+sim<- simper(dune, dune.env$Management)
+summary(sim) 
+```
+
+#### Usando el uso tenemos:
+
+```{r}
+dune.ano<- anosim(dune.dist, dune.env$Use)
+summary(dune.ano)
+plot(dune.ano)
+
+```
+
+En este caso el valor de p y el grafico nos indica que en terminos de uso no hay diferencias entre los grupos.
+
+```{r}
+
+sim<- simper(dune, dune.env$Use)
+summary(sim)
+```
+
+### Reduccion de la dimensionalidad *Nonmetric Multidimensional Scaling (NMDS)*
+
+```{r}
+MDS<- metaMDS(dune)
+plot(MDS)
+```
+Este grafico es muy feo, vamos a hacer un *ggplot!*
+
+```{r}
+DF<- MDS$points %>% as.data.frame() %>% bind_cols(dune.env)
+
+ggplot(DF, aes(MDS1, MDS2, col=Management))+
+  geom_point()+
+  labs(title = "Diferencias entre tipos de manejo")+
+  theme_bw()
+```
+
+Vemos que los puntos de *BF* y *HF* se agrupan, lo que indica que hay diferencias en estos grupos frente a todo el conjunto.
+
+
+En cuanto al tipo de uso tenemos 
+```{r}
+ggplot(DF, aes(MDS1, MDS2, col=Use))+
+  geom_point()+
+  labs(title = "Diferencias entre tipos de uso")+
+  theme_bw()
+
+```
+
+En este caso vemos que los puntos de los grupos estan dispersos, luego no se evidencia diferencia.
+
+#### Transformaciones en MDS
+
+Cuando tenemos comunidades balanceadas en numero de especies la reduccion de dimensionalidad no tiene mucho problema, pero que pasa si tenemos una o varias especies dominantes con una gran cantidad de registros? en este caso hay que hacer transformaciones para balancear los pesos antes de realizar el analisis de reduccion de dimensionalidad.
+
+```{r}
+dune2<- dune
+dune2[1,1]<-100 #cambiamos el valor de las observaciones del sitio1 para la primera especie por 100
+
+MDS2<- metaMDS(dune2)
+```
+
+La funcion **metaMDS** realiza una transformacion de raiz cuadrada y una estandarizacion doble de *Wisconsin* de forma automatica. Se recomienda hacer las transformaciones de forma manual para tener claridad metodologica en el proceso.
+
+### Que variables influencian la diferencia entre comunidades?
+
+Vamos a ajustar un modelo que nos permita identificar las variables que causan diferencias entre las comunidades.
+
+```{r}
+Fit<- envfit(MDS, dune.env, perm=999)
+plot(MDS)
+plot(Fit)
+plot(Fit, p.max=0.05, col="red")
+```
+
+En rojo podemos ver las variables que son significativas 
